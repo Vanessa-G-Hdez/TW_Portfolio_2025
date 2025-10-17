@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payment API Integration Guide</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Roboto, sans-serif;
+      background-color: #f9fafc;
+      color: #333;
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #004b6b;
+      color: white;
+      padding: 40px 20px;
+      text-align: center;
+    }
+
+    main {
+      max-width: 900px;
+      margin: 40px auto;
+      background: white;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.08);
+    }
+
+    h1, h2, h3 {
+      color: #004b6b;
+    }
+
+    code, pre {
+      background-color: #f4f4f4;
+      padding: 10px;
+      border-radius: 6px;
+      font-family: Consolas, monospace;
+      display: block;
+      overflow-x: auto;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    table, th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+    }
+
+    th {
+      background-color: #004b6b;
+      color: white;
+      text-align: left;
+    }
+
+    ul {
+      margin-top: 10px;
+    }
+
+    .note {
+      background-color: #e8f4fc;
+      border-left: 5px solid #004b6b;
+      padding: 15px;
+      border-radius: 8px;
+    }
+
+    footer {
+      text-align: center;
+      color: #666;
+      font-size: 14px;
+      margin-top: 40px;
+      padding-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Payment API Integration Guide</h1>
+    <p>Technical Documentation Project by Vanessa G. Hdez</p>
+  </header>
+
+  <main>
+    <h2>Overview</h2>
+    <p>
+      The <strong>Payment API</strong> enables secure online transactions through RESTful endpoints.
+      This document describes authentication, request and response formats, and common error handling.
+    </p>
+
+    <h2>1. Authentication</h2>
+    <p>To access any endpoint, first obtain an access token.</p>
+
+    <h3>Endpoint</h3>
+    <pre><code>POST /auth/token</code></pre>
+
+    <h3>Request Example</h3>
+    <pre><code>{
+  "client_id": "your_client_id",
+  "client_secret": "your_client_secret"
+}</code></pre>
+
+    <h3>Response Example</h3>
+    <pre><code>{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9",
+  "token_type": "Bearer",
+  "expires_in": 3600
+}</code></pre>
+
+    <p>Include the token in the header of subsequent requests:</p>
+    <pre><code>Authorization: Bearer &lt;access_token&gt;</code></pre>
+
+    <h2>2. Create a Payment</h2>
+    <h3>Endpoint</h3>
+    <pre><code>POST /payments</code></pre>
+
+    <h3>Request Body</h3>
+    <pre><code>{
+  "amount": 250.75,
+  "currency": "USD",
+  "payment_method": {
+    "type": "card",
+    "card": {
+      "number": "4111111111111111",
+      "exp_month": "12",
+      "exp_year": "2026",
+      "cvv": "123"
+    }
+  },
+  "description": "Order #2458"
+}</code></pre>
+
+    <h3>Response (201 Created)</h3>
+    <pre><code>{
+  "payment_id": "pay_01hxyzab123",
+  "status": "pending",
+  "created_at": "2025-10-15T12:30:00Z"
+}</code></pre>
+
+    <div class="note">
+      <strong>Warning:</strong> This is a test environment. Do not use real credit card numbers.
+    </div>
+
+    <h2>3. Retrieve Payment Status</h2>
+    <h3>Endpoint</h3>
+    <pre><code>GET /payments/{payment_id}</code></pre>
+
+    <h3>Response</h3>
+    <pre><code>{
+  "payment_id": "pay_01hxyzab123",
+  "status": "completed",
+  "amount": 250.75,
+  "currency": "USD",
+  "description": "Order #2458",
+  "completed_at": "2025-10-15T12:32:00Z"
+}</code></pre>
+
+    <h2>4. Error Handling</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>HTTP Code</th>
+          <th>Description</th>
+          <th>Example Message</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>400</td><td>Bad Request</td><td>Invalid card number</td></tr>
+        <tr><td>401</td><td>Unauthorized</td><td>Missing or invalid token</td></tr>
+        <tr><td>404</td><td>Not Found</td><td>Payment not found</td></tr>
+        <tr><td>500</td><td>Internal Server Error</td><td>Unexpected processing error</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Sample Error Response</h3>
+    <pre><code>{
+  "error": {
+    "code": "invalid_request",
+    "message": "Card number format is invalid"
+  }
+}</code></pre>
+
+    <h2>5. Best Practices</h2>
+    <ul>
+      <li>Validate input fields on the client side before sending.</li>
+      <li>Use HTTPS for all communications.</li>
+      <li>Implement retry logic for transient 5xx errors.</li>
+      <li>Log both successful and failed requests.</li>
+      <li>Store API credentials securely in environment variables.</li>
+    </ul>
+
+    <h2>6. Versioning and Changelog</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Version</th>
+          <th>Date</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>1.0</td><td>2025-10-15</td><td>Initial release of Payment API documentation.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>7. About This Document</h2>
+    <p>This topic was created for a Technical Writer portfolio project to demonstrate:</p>
+    <ul>
+      <li>Topic-based structure and use of variables.</li>
+      <li>Reusable snippets for notes and warnings.</li>
+      <li>Conditional text for environment-specific output.</li>
+      <li>Support for multi-channel publishing (HTML5 and PDF).</li>
+    </ul>
+
+    <p class="note">
+      All sample data and endpoints are fictitious and provided solely for demonstration purposes.
+    </p>
+  </main>
+
+  <footer>
+    © 2025 Vanessa G. Hdez | Technical Writer Portfolio
+  </footer>
+</body>
+</html>
